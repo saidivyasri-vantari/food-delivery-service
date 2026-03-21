@@ -21,7 +21,7 @@ public class RestaurantDao {
         return repository.save(restaurant);
     }
 
-    public Optional<Restaurant> findById(Long id) {
+    public Optional<Restaurant> findById(Integer id) {
         return repository.findById(id);
     }
 
@@ -29,11 +29,11 @@ public class RestaurantDao {
         return repository.findAll();
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         repository.deleteById(id);
     }
 
-    public boolean existsById(Long id) {
+    public boolean existsById(Integer id) {
         return repository.existsById(id);
     }
 }

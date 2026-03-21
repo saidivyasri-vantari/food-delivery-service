@@ -21,15 +21,15 @@ public class MenuItemDao {
         return repository.save(item);
     }
 
-    public Optional<MenuItem> findById(Long id) {
+    public Optional<MenuItem> findById(Integer id) {
         return repository.findById(id);
     }
 
-    public List<MenuItem> findByRestaurantId(Long restaurantId) {
+    public List<MenuItem> findByRestaurantId(Integer restaurantId) {
         return repository.findByRestaurantId(restaurantId);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         repository.deleteById(id);
     }
     public List<MenuItem> findByRestaurant(Restaurant restaurant){

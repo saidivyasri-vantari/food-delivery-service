@@ -8,29 +8,30 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private Long menuItemId;        // ✅ getter & setter missing before
-    private Integer quantity;
-    private Double price;
+    @Column(name = "order_item_id")
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @ManyToOne
+    @JoinColumn(name = "item_id")
+    private MenuItem menuItem;
 
-    public Long getMenuItemId() { return menuItemId; }  // ✅ added
-    public void setMenuItemId(Long menuItemId) { this.menuItemId = menuItemId; } // ✅ added
+    @Column
+    private Integer quantity;
 
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
-
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    // Getters and setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
+
+    public MenuItem getMenuItem() { return menuItem; }
+    public void setMenuItem(MenuItem menuItem) { this.menuItem = menuItem; }
+
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 }

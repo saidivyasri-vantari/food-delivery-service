@@ -1,5 +1,6 @@
 package com.ibc.training.fooddelivery.dao;
 
+import com.ibc.training.fooddelivery.entity.Customer;
 import com.ibc.training.fooddelivery.entity.Order;
 import com.ibc.training.fooddelivery.repository.OrderRepository;
 import org.springframework.stereotype.Component;
@@ -20,19 +21,22 @@ public class OrderDao {
         return repository.save(order);
     }
 
-    public Optional<Order> findById(Long id) {
+    public Optional<Order> findById(Integer id) {
         return repository.findById(id);
     }
 
-    public List<Order> findByCustomerId(Long customerId) {
+    public List<Order> findByCustomerId(Integer customerId) {
         return repository.findByCustomerId(customerId);
     }
 
-    public List<Order> findByDriverId(Long driverId) {
+    public List<Order> findByDriverId(Integer driverId) {
         return repository.findByDriverId(driverId);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         repository.deleteById(id);
+    }
+    public List<Order> findAll() {
+        return repository.findAll();
     }
 }

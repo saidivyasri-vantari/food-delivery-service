@@ -1,22 +1,19 @@
 package com.ibc.training.fooddelivery.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 public class OrderItemDTO {
-
     private Long id;
 
-    @NotNull(message = "Menu item ID is required")
+    @NotNull(message = "OrderId is required")
+    private Long orderId;
+
+    @NotNull(message = "MenuItemId is required")
     private Long menuItemId;
 
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be positive")
     private Integer quantity;
-
-    @NotNull(message = "Price is required")
-    @Positive(message = "Price must be positive")
-    private Double price;
 
     public Long getId() {
         return id;
@@ -24,6 +21,14 @@ public class OrderItemDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     public Long getMenuItemId() {
@@ -40,13 +45,5 @@ public class OrderItemDTO {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
     }
 }

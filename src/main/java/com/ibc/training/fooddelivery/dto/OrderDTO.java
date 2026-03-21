@@ -1,34 +1,68 @@
 package com.ibc.training.fooddelivery.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderDTO {
+    private Integer id;
 
-    private Long id;
+    @NotNull(message = "Order date is required")
+    private LocalDateTime orderDate;
 
-    @NotBlank(message = "Status is required")
+    @NotNull(message = "CustomerId is required")
+    private Integer customerId;
+
+    @NotNull(message = "RestaurantId is required")
+    private Integer restaurantId;
+
+    private Integer driverId;  // driver can be assigned later
+
+    @NotBlank(message = "Order status is required")
     private String status;
 
-    @NotNull(message = "Total amount is required")
-    @Positive(message = "Total must be positive")
-    private Double totalAmount;
-
-    @NotNull(message = "Customer ID is required")
-    private Long customerId;
-
-    private Long driverId;
-
     private List<OrderItemDTO> items;
+    private List<CouponDTO> coupons;
+    private List<RatingDTO> ratings;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public Integer getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
+    }
+
+    public Integer getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Integer restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public Integer getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(Integer driverId) {
+        this.driverId = driverId;
     }
 
     public String getStatus() {
@@ -39,28 +73,21 @@ public class OrderDTO {
         this.status = status;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
+
+    public List<CouponDTO> getCoupons() {
+        return coupons;
     }
 
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setCoupons(List<CouponDTO> coupons) {
+        this.coupons = coupons;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public List<RatingDTO> getRatings() {
+        return ratings;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-
-    public Long getDriverId() {
-        return driverId;
-    }
-
-    public void setDriverId(Long driverId) {
-        this.driverId = driverId;
+    public void setRatings(List<RatingDTO> ratings) {
+        this.ratings = ratings;
     }
 
     public List<OrderItemDTO> getItems() {

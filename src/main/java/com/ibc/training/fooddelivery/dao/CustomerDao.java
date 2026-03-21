@@ -20,7 +20,7 @@ public class CustomerDao {
         return repository.save(customer);
     }
 
-    public Optional<Customer> findById(Long id) {
+    public Optional<Customer> findById(Integer id) {
         return repository.findById(id);
     }
 
@@ -32,7 +32,7 @@ public class CustomerDao {
         return repository.findAll();
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         repository.deleteById(id);
     }
 }

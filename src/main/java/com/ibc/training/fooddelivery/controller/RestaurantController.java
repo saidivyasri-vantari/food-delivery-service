@@ -1,119 +1,102 @@
 package com.ibc.training.fooddelivery.controller;
 
 import com.ibc.training.fooddelivery.common.ApiResponse;
-import com.ibc.training.fooddelivery.dto.*;
-import com.ibc.training.fooddelivery.service.DeliveryAreaService;
-import com.ibc.training.fooddelivery.service.MenuItemService;
+import com.ibc.training.fooddelivery.dto.RatingDTO;
+import com.ibc.training.fooddelivery.request.RestaurantRequest;
+import com.ibc.training.fooddelivery.response.MenuItemResponse;
+import com.ibc.training.fooddelivery.response.RestaurantResponse;
 import com.ibc.training.fooddelivery.service.RestaurantService;
-import com.ibc.training.fooddelivery.service.ReviewService;
+
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
-    private final MenuItemService menuItemService;
-    private final ReviewService reviewService;
-    private final DeliveryAreaService deliveryAreaService;
 
-    public RestaurantController(RestaurantService restaurantService, MenuItemService menuItemService, ReviewService reviewService, DeliveryAreaService deliveryAreaService) {
+    public RestaurantController(RestaurantService restaurantService) {
         this.restaurantService = restaurantService;
-        this.menuItemService = menuItemService;
-        this.reviewService = reviewService;
-        this.deliveryAreaService = deliveryAreaService;
     }
 
-    // ✅ GET all restaurants
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<RestaurantDTO>>> getAllRestaurants() {
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Restaurants fetched successfully",
-                        restaurantService.getAllRestaurants())
-        );
-    }
-
-    // ✅ GET restaurant by ID
-    @GetMapping("/{restaurantId}")
-    public ResponseEntity<ApiResponse<RestaurantDTO>> getRestaurantById(
-            @PathVariable Long restaurantId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Restaurant details fetched successfully",
-                        restaurantService.getRestaurantById(restaurantId))
-        );
-    }
-
-    // ✅ CREATE restaurant
+    // ✅ Create
     @PostMapping
-    public ResponseEntity<ApiResponse<RestaurantDTO>> createRestaurant(
-            @Valid @RequestBody RestaurantDTO dto) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(201, "Restaurant created successfully",
-                        restaurantService.createRestaurant(dto)));
+    public ResponseEntity<ApiResponse<RestaurantResponse>> createRestaurant(
+            @Valid @RequestBody RestaurantRequest request) {
+        var dto = restaurantService.createRestaurant(request.toDTO());
+        var response = new ApiResponse<>(HttpStatus.CREATED.value(), "Restaurant created successfully", RestaurantResponse.fromDTO(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ✅ UPDATE restaurant
+    // ✅ Get All
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<RestaurantResponse>>> getAllRestaurants() {
+        var dtos = restaurantService.getAllRestaurants();
+        var responses = dtos.stream().map(RestaurantResponse::fromDTO).collect(Collectors.toList());
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Restaurants retrieved successfully", responses);
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // ✅ Get By ID
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantById(
+            @PathVariable Integer restaurantId) {
+        var dto = restaurantService.getRestaurantById(restaurantId);
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Restaurant retrieved successfully", RestaurantResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
+    }
+
+    // ✅ Update
     @PutMapping("/{restaurantId}")
-    public ResponseEntity<ApiResponse<RestaurantDTO>> updateRestaurant(
-            @PathVariable Long restaurantId,
-            @Valid @RequestBody RestaurantDTO dto) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Restaurant updated successfully",
-                        restaurantService.updateRestaurant(restaurantId, dto))
-        );
+    public ResponseEntity<ApiResponse<RestaurantResponse>> updateRestaurant(
+            @PathVariable Integer restaurantId,
+            @Valid @RequestBody RestaurantRequest request) {
+        var dto = restaurantService.updateRestaurant(restaurantId, request.toDTO());
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Restaurant updated successfully", RestaurantResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ DELETE restaurant
+    // ✅ Delete
     @DeleteMapping("/{restaurantId}")
-    public ResponseEntity<ApiResponse<Void>> deleteRestaurant(
-            @PathVariable Long restaurantId) {
-
-        restaurantService.deleteRestaurant(restaurantId);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Restaurant deleted successfully", null)
-        );
+    public ResponseEntity<ApiResponse<String>> deleteRestaurant(
+            @PathVariable Integer restaurantId) {
+        try {
+            restaurantService.deleteRestaurant(restaurantId);
+            var response = new ApiResponse<>(HttpStatus.NO_CONTENT.value(), "Restaurant deleted successfully", "null");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        } catch (Exception e) {
+            var response = new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Restaurant not found", "null");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
-    // ✅ GET menu items of restaurant
+    // ============================
+    // ✅ CHILD RESOURCES
+    // ============================
+
+    // 🍔 Menu Items
     @GetMapping("/{restaurantId}/menu")
-    public ResponseEntity<ApiResponse<List<MenuItemDTO>>> getMenuItems(
-            @PathVariable Long restaurantId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Menu items fetched successfully",
-                        menuItemService.getMenuByRestaurant(restaurantId))
-        );
+    public ResponseEntity<ApiResponse<List<MenuItemResponse>>> getMenuByRestaurant(
+            @PathVariable Integer restaurantId) {
+        var dtos = restaurantService.getMenuByRestaurant(restaurantId);
+        var responses = dtos.stream().map(MenuItemResponse::fromDTO).collect(Collectors.toList());
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Menu items retrieved successfully", responses);
+        return ResponseEntity.ok(apiResponse);
     }
 
-    // ✅ GET reviews of restaurant
+    // ⭐ Reviews
     @GetMapping("/{restaurantId}/reviews")
-    public ResponseEntity<ApiResponse<List<ReviewDTO>>> getReviews(
-            @PathVariable Long restaurantId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Reviews fetched successfully",
-                        reviewService.getByRestaurant(restaurantId))
-        );
-    }
-
-    // ✅ GET delivery areas of restaurant
-    @GetMapping("/{restaurantId}/delivery-areas")
-    public ResponseEntity<ApiResponse<List<DeliveryAreaDTO>>> getDeliveryAreas(
-            @PathVariable Long restaurantId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Delivery areas fetched successfully",
-                        deliveryAreaService.getByRestaurant(restaurantId))
-        );
+    public ResponseEntity<ApiResponse<List<RatingDTO>>> getReviewsByRestaurant(
+            @PathVariable Integer restaurantId) {
+        var dtos = restaurantService.getReviewsByRestaurant(restaurantId);
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Reviews retrieved successfully", dtos);
+        return ResponseEntity.ok(apiResponse);
     }
 }

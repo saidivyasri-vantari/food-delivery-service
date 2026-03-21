@@ -1,56 +1,25 @@
 package com.ibc.training.fooddelivery.service;
 
-import com.ibc.training.fooddelivery.dao.RestaurantDao;
+import com.ibc.training.fooddelivery.dto.MenuItemDTO;
+import com.ibc.training.fooddelivery.dto.RatingDTO;
 import com.ibc.training.fooddelivery.dto.RestaurantDTO;
-import com.ibc.training.fooddelivery.entity.Restaurant;
-import com.ibc.training.fooddelivery.exception.ResourceNotFoundException;
-import com.ibc.training.fooddelivery.mapper.RestaurantMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class RestaurantService {
+public interface RestaurantService {
 
-    private final RestaurantDao dao;
-    private final RestaurantMapper mapper;
+    RestaurantDTO createRestaurant(RestaurantDTO dto);
 
-    public RestaurantService(RestaurantDao dao, RestaurantMapper mapper) {
-        this.dao = dao;
-        this.mapper = mapper;
-    }
+    RestaurantDTO updateRestaurant(Integer id, RestaurantDTO dto);
 
-    public List<RestaurantDTO> getAllRestaurants() {
-        return mapper.toDtoList(dao.findAll());
-    }
+    void deleteRestaurant(Integer id);
 
-    public RestaurantDTO getRestaurantById(Long id) {
-        Restaurant restaurant = dao.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
-        return mapper.toDto(restaurant);
-    }
+    RestaurantDTO getRestaurantById(Integer id);
 
-    public RestaurantDTO createRestaurant(RestaurantDTO dto) {
-        Restaurant restaurant = mapper.toEntity(dto);
-        return mapper.toDto(dao.save(restaurant));
-    }
+    List<RestaurantDTO> getAllRestaurants();
 
-    public RestaurantDTO updateRestaurant(Long id, RestaurantDTO dto) {
-        Restaurant existing = dao.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
+    // ✅ New APIs
+    List<MenuItemDTO> getMenuByRestaurant(Integer restaurantId);
 
-        existing.setName(dto.getName());
-        existing.setAddress(dto.getAddress());
-        existing.setCuisineType(dto.getCuisineType());
-
-        return mapper.toDto(dao.save(existing));
-    }
-
-    public void deleteRestaurant(Long id) {
-        if (!dao.existsById(id)) {
-            throw new ResourceNotFoundException("Restaurant not found");
-        }
-        dao.deleteById(id);
-    }
+    List<RatingDTO> getReviewsByRestaurant(Integer restaurantId);
 }

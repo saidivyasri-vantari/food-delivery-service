@@ -1,8 +1,6 @@
 package com.ibc.training.fooddelivery.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "menu_items")
@@ -10,65 +8,42 @@ public class MenuItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "item_id")
+    private Integer id;
 
+    @Column(name = "item_name", nullable = false)
     private String name;
-    private Double price;
 
-    @ManyToOne
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
-
+    @Column(name = "item_description")
     private String description;
 
-    @Column(nullable = false)
-    private Boolean available = true;
+    @Column(name = "item_price", nullable = false)
+    private Double price;
 
-    public Long getId() {
-        return id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id", nullable = false)
+    private Restaurant restaurant;
 
-    public String getName() {
-        return name;
-    }
+   // @Column(nullable = false)
+    //private Boolean available = true;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    // Getters and setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public Double getPrice() {
-        return price;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setPrice(Double price) {
-        this.price = price;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Restaurant getRestaurant() {
-        return restaurant;
-    }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
+    public Restaurant getRestaurant() { return restaurant; }
+    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(Boolean available) {
-        this.available = available;
-    }
+    //public Boolean getAvailable() { return available; }
+    //public void setAvailable(Boolean available) { this.available = available; }
 }

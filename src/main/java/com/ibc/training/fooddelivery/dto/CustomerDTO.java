@@ -1,21 +1,26 @@
 package com.ibc.training.fooddelivery.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
+import java.util.List;
 
 public class CustomerDTO {
-
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = "Customer name is required")
+    @Size(max = 100, message = "Name can be at most 100 characters")
     private String name;
 
-    @Email(message = "Invalid email")
-    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
+    @Size(max = 255)
     private String email;
 
-    @NotBlank(message = "Phone is required")
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "\\d{10,15}", message = "Phone must be 10-15 digits")
     private String phone;
+
+    private List<OrderDTO> orders;
+
+    private List<DeliveryAddressDTO> deliveryAddresses;
 
     public Long getId() {
         return id;
@@ -47,5 +52,21 @@ public class CustomerDTO {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public List<OrderDTO> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<OrderDTO> orders) {
+        this.orders = orders;
+    }
+
+    public List<DeliveryAddressDTO> getDeliveryAddresses() {
+        return deliveryAddresses;
+    }
+
+    public void setDeliveryAddresses(List<DeliveryAddressDTO> deliveryAddresses) {
+        this.deliveryAddresses = deliveryAddresses;
     }
 }

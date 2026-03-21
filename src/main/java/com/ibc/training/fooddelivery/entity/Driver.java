@@ -4,48 +4,39 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "drivers")
+@Table(name = "delivery_drivers")
 public class Driver {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "driver_id")
+    private Integer id;
 
+    @Column(name = "driver_name", nullable = false)
     private String name;
-    private String location;
+
+    @Column(name = "driver_phone")
+    private String phone;
+
+    @Column(name = "driver_vehicle")
+    private String vehicle;
 
     @OneToMany(mappedBy = "driver")
     private List<Order> orders;
 
-    public Long getId() {
-        return id;
-    }
+    // Getters and setters
+    public Integer  getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getVehicle() { return vehicle; }
+    public void setVehicle(String vehicle) { this.vehicle = vehicle; }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
+    public List<Order> getOrders() { return orders; }
+    public void setOrders(List<Order> orders) { this.orders = orders; }
 }

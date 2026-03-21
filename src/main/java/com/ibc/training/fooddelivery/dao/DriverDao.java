@@ -20,7 +20,7 @@ public class DriverDao {
         return repository.save(driver);
     }
 
-    public Optional<Driver> findById(Long id) {
+    public Optional<Driver> findById(Integer id) {
         return repository.findById(id);
     }
 
@@ -28,7 +28,7 @@ public class DriverDao {
         return repository.findAll();
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer  id) {
         repository.deleteById(id);
     }
 }

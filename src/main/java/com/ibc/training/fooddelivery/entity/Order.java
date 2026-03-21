@@ -1,9 +1,6 @@
 package com.ibc.training.fooddelivery.entity;
 
-import com.ibc.training.fooddelivery.entity.Customer;
-import com.ibc.training.fooddelivery.entity.OrderItem;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,38 +10,58 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "order_id")
+    private Integer id;
+
+    @Column(name = "order_date", nullable = false)
+    private LocalDateTime orderTime;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    private LocalDateTime orderTime;       // ✅ getter & setter missing before
-    private BigDecimal totalAmount;
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id", nullable = false)
+    private Restaurant restaurant;
+
+    @ManyToOne
+    @JoinColumn(name = "delivery_driver_id")
+    private Driver driver;
+
+    @Column(name = "order_status")
     private String status;
-    private String deliveryAddress;       // ✅ getter & setter missing before
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdersCoupons> orderCoupons;
+
+    public List<OrdersCoupons> getOrderCoupons() {
+        return orderCoupons;
+    }
+
+    public void setOrderCoupons(List<OrdersCoupons> orderCoupons) {
+        this.orderCoupons = orderCoupons;
+    }
+    // Getters and setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public Customer getCustomer() { return customer; }
     public void setCustomer(Customer customer) { this.customer = customer; }
 
-    public LocalDateTime getOrderTime() { return orderTime; }    // ✅ added
-    public void setOrderTime(LocalDateTime orderTime) { this.orderTime = orderTime; }  // ✅ added
+    public Restaurant getRestaurant() { return restaurant; }
+    public void setRestaurant(Restaurant restaurant) { this.restaurant = restaurant; }
 
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public Driver getDriver() { return driver; }
+    public void setDriver(Driver driver) { this.driver = driver; }
+
+    public LocalDateTime getOrderTime() { return orderTime; }
+    public void setOrderTime(LocalDateTime orderTime) { this.orderTime = orderTime; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public String getDeliveryAddress() { return deliveryAddress; } // ✅ added
-    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; } // ✅ added
 
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }

@@ -1,77 +1,62 @@
 package com.ibc.training.fooddelivery.controller;
 
-
 import com.ibc.training.fooddelivery.common.ApiResponse;
-import com.ibc.training.fooddelivery.dto.CustomerDTO;
+import com.ibc.training.fooddelivery.request.CustomerRequest;
+import com.ibc.training.fooddelivery.response.CustomerResponse;
 import com.ibc.training.fooddelivery.service.CustomerService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/customers")
-@RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
 
-    // ✅ CREATE Customer
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
     @PostMapping
-    public ResponseEntity<ApiResponse<CustomerDTO>> createCustomer(
-            @Valid @RequestBody CustomerDTO dto) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(201, "Customer created successfully",
-                        customerService.createCustomer(dto)));
+    public ResponseEntity<ApiResponse<CustomerResponse>> createCustomer(@RequestBody CustomerRequest request) {
+        var dto = customerService.createCustomer(request.toDTO());
+        var response = new ApiResponse<>(HttpStatus.CREATED.value(), "Customer created successfully", CustomerResponse.fromDTO(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ✅ GET Customer by ID
-    @GetMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerDTO>> getCustomerById(
-            @PathVariable Long customerId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Customer fetched successfully",
-                        customerService.getCustomer(customerId))
-        );
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CustomerResponse>> getCustomer(@PathVariable Integer id) {
+        var dto = customerService.getCustomerById(id);
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Customer retrieved successfully", CustomerResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ GET All Customers
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerDTO>>> getAllCustomers() {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Customers fetched successfully",
-                        customerService.getAllCustomers())
-        );
+    public ResponseEntity<ApiResponse<List<CustomerResponse>>> getAllCustomers() {
+        var dtos = customerService.getAllCustomers();
+        var responses = dtos.stream().map(CustomerResponse::fromDTO).collect(Collectors.toList());
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Customers retrieved successfully", responses);
+        return ResponseEntity.ok(apiResponse);
     }
 
-    // ✅ UPDATE Customer
-    @PutMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<CustomerDTO>> updateCustomer(
-            @PathVariable Long customerId,
-            @Valid @RequestBody CustomerDTO dto) {
-
-        CustomerDTO updated = customerService.updateCustomer(customerId, dto);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Customer updated successfully", updated)
-        );
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomer(
+            @PathVariable Integer id,
+            @Valid @RequestBody CustomerRequest request) {
+        var dto = customerService.updateCustomer(id, request.toDTO());
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Customer updated successfully", CustomerResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ DELETE Customer
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCustomer(
-            @PathVariable Long customerId) {
-
-        customerService.deleteCustomer(customerId);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Customer deleted successfully", null)
-        );
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Integer id) {
+        customerService.deleteCustomer(id);
+        var response = new ApiResponse<Void>(HttpStatus.NO_CONTENT.value(), "Customer deleted successfully", null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
 }

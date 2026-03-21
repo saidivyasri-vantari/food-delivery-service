@@ -19,7 +19,7 @@ public class OrderItemDao {
         return repository.save(item);
     }
 
-    public List<OrderItem> findByOrderId(Long orderId) {
+    public List<OrderItem> findByOrderId(Integer orderId) {
         return repository.findByOrderId(orderId);
     }
 }

@@ -1,76 +1,91 @@
 package com.ibc.training.fooddelivery.controller;
 
 import com.ibc.training.fooddelivery.common.ApiResponse;
-import com.ibc.training.fooddelivery.dto.DriverDTO;
+import com.ibc.training.fooddelivery.request.DriverRequest;
+import com.ibc.training.fooddelivery.response.DriverResponse;
+import com.ibc.training.fooddelivery.response.OrderResponse;
 import com.ibc.training.fooddelivery.service.DriverService;
+
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/drivers")
-@RequiredArgsConstructor
+@RequestMapping("/api")
 public class DriverController {
 
     private final DriverService driverService;
 
-    // ✅ CREATE Driver
-    @PostMapping
-    public ResponseEntity<ApiResponse<DriverDTO>> createDriver(
-            @Valid @RequestBody DriverDTO dto) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(201, "Driver created successfully",
-                        driverService.create(dto)));
+    public DriverController(DriverService driverService) {
+        this.driverService = driverService;
     }
 
-    // ✅ GET Driver by ID
-    @GetMapping("/{driverId}")
-    public ResponseEntity<ApiResponse<DriverDTO>> getDriverById(
-            @PathVariable Long driverId) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Driver fetched successfully",
-                        driverService.getDriver(driverId))
-        );
+    @PostMapping("/drivers")
+    public ResponseEntity<ApiResponse<DriverResponse>> createDriver(
+            @Valid @RequestBody DriverRequest request) {
+        var dto = driverService.createDriver(request.toDTO());
+        var response = new ApiResponse<>(HttpStatus.CREATED.value(), "Driver created successfully", DriverResponse.fromDTO(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ✅ GET All Drivers
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<DriverDTO>>> getAllDrivers() {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Drivers fetched successfully",
-                        driverService.getAll())
-        );
+    @GetMapping("/drivers")
+    public ResponseEntity<ApiResponse<List<DriverResponse>>> getAllDrivers() {
+        var dtos = driverService.getAllDrivers();
+        var responses = dtos.stream().map(DriverResponse::fromDTO).collect(Collectors.toList());
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Drivers retrieved successfully", responses);
+        return ResponseEntity.ok(apiResponse);
     }
 
-    // ✅ UPDATE Driver
-    @PutMapping("/{driverId}")
-    public ResponseEntity<ApiResponse<DriverDTO>> updateDriver(
-            @PathVariable Long driverId,
-            @Valid @RequestBody DriverDTO dto) {
-
-        DriverDTO updated = driverService.updateDriver(driverId, dto);
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Driver updated successfully", updated)
-        );
+    @GetMapping("/drivers/{driverId}")
+    public ResponseEntity<ApiResponse<DriverResponse>> getDriverById(
+            @PathVariable Integer driverId) {
+        var dto = driverService.getDriverById(driverId);
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Driver retrieved successfully", DriverResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
     }
 
-    // ✅ DELETE Driver
-    @DeleteMapping("/{driverId}")
-    public ResponseEntity<ApiResponse<Void>> deleteDriver(
-            @PathVariable Long driverId) {
+    @DeleteMapping("/drivers/{driverId}")
+    public ResponseEntity<ApiResponse<String>> deleteDriver(
+            @PathVariable Integer driverId) {
+        try {
+            driverService.deleteDriver(driverId);
+            var response = new ApiResponse<>(HttpStatus.NO_CONTENT.value(), "Driver deleted successfully", "null");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        } catch (Exception e) {
+            var response = new ApiResponse<>(HttpStatus.NOT_FOUND.value(), "Driver not found", "null");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
 
-        driverService.deleteDriver(driverId);
+    @PutMapping("/orders/{orderId}/assignDriver/{driverId}")
+    public ResponseEntity<ApiResponse<OrderResponse>> assignDriver(
+            @PathVariable Integer orderId,
+            @PathVariable Integer driverId) {
+        var dto = driverService.assignDriverToOrder(orderId, driverId);
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Driver assigned to order successfully", OrderResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
+    }
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(200, "Driver deleted successfully", null)
-        );
+    @PutMapping("/drivers/{driverId}/location")
+    public ResponseEntity<ApiResponse<DriverResponse>> updateLocation(
+            @PathVariable Integer driverId,
+            @RequestParam String location) {
+        var dto = driverService.updateDriverLocation(driverId, location);
+        var response = new ApiResponse<>(HttpStatus.OK.value(), "Driver location updated successfully", DriverResponse.fromDTO(dto));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/drivers/{driverId}/orders")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getDriverOrders(
+            @PathVariable Integer driverId) {
+        var dtos = driverService.getOrdersByDriver(driverId);
+        var responses = dtos.stream().map(OrderResponse::fromDTO).collect(Collectors.toList());
+        var apiResponse = new ApiResponse<>(HttpStatus.OK.value(), "Driver orders retrieved successfully", responses);
+        return ResponseEntity.ok(apiResponse);
     }
 }

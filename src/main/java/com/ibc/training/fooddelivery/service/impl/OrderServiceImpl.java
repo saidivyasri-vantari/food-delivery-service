@@ -1,146 +1,92 @@
 package com.ibc.training.fooddelivery.service.impl;
 
+import com.ibc.training.fooddelivery.dao.CustomerDao;
+import com.ibc.training.fooddelivery.dao.OrderDao;
 import com.ibc.training.fooddelivery.dto.OrderDTO;
-import com.ibc.training.fooddelivery.dto.OrderItemDTO;
-import com.ibc.training.fooddelivery.dto.OrderResponseDTO;
+import com.ibc.training.fooddelivery.entity.Customer;
 import com.ibc.training.fooddelivery.entity.Order;
-import com.ibc.training.fooddelivery.entity.OrderItem;
-import com.ibc.training.fooddelivery.repository.CustomerRepository;
-import com.ibc.training.fooddelivery.repository.OrderItemRepository;
-import com.ibc.training.fooddelivery.repository.OrderRepository;
+import com.ibc.training.fooddelivery.exception.ResourceNotFoundException;
+import com.ibc.training.fooddelivery.mapper.OrderMapper;
 import com.ibc.training.fooddelivery.service.OrderService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final CustomerRepository customerRepository;
+    private final OrderDao orderDao;
+    private final CustomerDao customerDao;
+    private final OrderMapper orderMapper;
 
-    public OrderServiceImpl(OrderRepository orderRepository,
-                            OrderItemRepository orderItemRepository,
-                            CustomerRepository customerRepository) {
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.customerRepository = customerRepository;
+    public OrderServiceImpl(OrderDao orderDao, CustomerDao customerDao, OrderMapper orderMapper) {
+        this.orderDao = orderDao;
+        this.customerDao = customerDao;
+        this.orderMapper = orderMapper;
     }
 
     @Override
-    public OrderResponseDTO createOrder(OrderDTO orderDTO) {
-        Order order = new Order();
-        order.setCustomer(customerRepository.findById(orderDTO.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found")));
-        order.setOrderTime(LocalDateTime.now());
-        order.setStatus("PENDING");
-        order.setDeliveryAddress(orderDTO.getDeliveryAddress());
+    public OrderDTO createOrder(OrderDTO orderDTO) {
 
-        // Calculate total amount
-        BigDecimal totalAmount = orderDTO.getItems().stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        order.setTotalAmount(totalAmount);
+        Order order = orderMapper.toEntity(orderDTO);
 
-        Order savedOrder = orderRepository.save(order);
+        // ✅ Set Customer
+        Customer customer = customerDao.findById(orderDTO.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        order.setCustomer(customer);
 
-        // Save order items
-        List<OrderItem> items = orderDTO.getItems().stream().map(itemDTO -> {
-            OrderItem item = new OrderItem();
-            item.setMenuItemId(itemDTO.getMenuItemId());
-            item.setQuantity(itemDTO.getQuantity());
-            item.setPrice(itemDTO.getPrice());
-            item.setOrder(savedOrder);
-            return orderItemRepository.save(item);
-        }).collect(Collectors.toList());
-
-        return mapToResponseDTO(savedOrder, items);
+        Order savedOrder = orderDao.save(order);
+        return orderMapper.toDto(savedOrder);
     }
 
     @Override
-    public OrderResponseDTO updateOrder(Long orderId, OrderDTO orderDTO) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+    public OrderDTO updateOrder(Integer orderId, OrderDTO orderDTO) {
 
-        order.setDeliveryAddress(orderDTO.getDeliveryAddress());
-        order.setStatus(orderDTO.getStatus());
+        Order existingOrder = orderDao.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-        // Update total amount
-        BigDecimal totalAmount = orderDTO.getItems().stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        order.setTotalAmount(totalAmount);
+        orderMapper.updateEntityFromDTO(orderDTO, existingOrder);
 
-        orderRepository.save(order);
+        // ✅ Update customer if provided
+        if (orderDTO.getCustomerId() != null) {
+            Customer customer = customerDao.findById(orderDTO.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+            existingOrder.setCustomer(customer);
+        }
 
-        // Remove old items and save new items
-        orderItemRepository.deleteByOrderId(orderId);
-        List<OrderItem> items = orderDTO.getItems().stream().map(itemDTO -> {
-            OrderItem item = new OrderItem();
-            item.setMenuItemId(itemDTO.getMenuItemId());
-            item.setQuantity(itemDTO.getQuantity());
-            item.setPrice(itemDTO.getPrice());
-            item.setOrder(order);
-            return orderItemRepository.save(item);
-        }).collect(Collectors.toList());
-
-        return mapToResponseDTO(order, items);
+        Order updatedOrder = orderDao.save(existingOrder);
+        return orderMapper.toDto(updatedOrder);
     }
 
     @Override
-    public void deleteOrder(Long orderId) {
-        orderItemRepository.deleteByOrderId(orderId);
-        orderRepository.deleteById(orderId);
+    public void deleteOrder(Integer orderId) {
+
+        Order order = orderDao.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        orderDao.deleteById(order.getId());
     }
 
     @Override
-    public OrderResponseDTO getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-        return mapToResponseDTO(order, items);
+    public OrderDTO getOrderById(Integer orderId) {
+
+        Order order = orderDao.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        return orderMapper.toDto(order);
     }
 
     @Override
-    public List<OrderResponseDTO> getAllOrders() {
-        return orderRepository.findAll().stream()
-                .map(order -> mapToResponseDTO(order, orderItemRepository.findByOrderId(order.getId())))
-                .collect(Collectors.toList());
+    public List<OrderDTO> getAllOrders() {
+
+        return orderMapper.toDtoList(orderDao.findAll());
     }
 
     @Override
-    public List<OrderResponseDTO> getOrdersByCustomer(Long customerId) {
-        return orderRepository.findByCustomerId(customerId).stream()
-                .map(order -> mapToResponseDTO(order, orderItemRepository.findByOrderId(order.getId())))
-                .collect(Collectors.toList());
-    }
+    public List<OrderDTO> getOrdersByCustomer(Integer customerId) {
 
-    // Utility method to map Order + Items -> OrderResponseDTO
-    private OrderResponseDTO mapToResponseDTO(Order order, List<OrderItem> items) {
-        OrderResponseDTO dto = new OrderResponseDTO();
-        dto.setId(order.getId());
-        dto.setCustomerId(order.getCustomer().getId());
-        dto.setCustomerName(order.getCustomer().getName());
-        dto.setOrderTime(order.getOrderTime());
-        dto.setTotalAmount(order.getTotalAmount());
-        dto.setStatus(order.getStatus());
-        dto.setDeliveryAddress(order.getDeliveryAddress());
-
-        List<OrderItemDTO> itemDTOs = items.stream().map(item -> {
-            OrderItemDTO itemDTO = new OrderItemDTO();
-            itemDTO.setMenuItemId(item.getMenuItemId());
-            itemDTO.setQuantity(item.getQuantity());
-            itemDTO.setPrice(item.getPrice());
-            return itemDTO;
-        }).collect(Collectors.toList());
-
-        dto.setItems(itemDTOs);
-        return dto;
+        List<Order> orders = orderDao.findByCustomerId(customerId);
+        return orderMapper.toDtoList(orders);
     }
 }

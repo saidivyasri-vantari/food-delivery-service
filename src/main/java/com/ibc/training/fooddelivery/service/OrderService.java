@@ -2,21 +2,20 @@ package com.ibc.training.fooddelivery.service;
 
 
 import com.ibc.training.fooddelivery.dto.OrderDTO;
-import com.ibc.training.fooddelivery.dto.OrderResponseDTO;
 
 import java.util.List;
 
 public interface OrderService {
 
-    OrderResponseDTO createOrder(OrderDTO orderDTO);
+    OrderDTO createOrder(OrderDTO orderDTO);
 
-    OrderResponseDTO updateOrder(Long orderId, OrderDTO orderDTO);
+    OrderDTO updateOrder(Integer orderId, OrderDTO orderDTO);
 
-    void deleteOrder(Long orderId);
+    void deleteOrder(Integer orderId);
 
-    OrderResponseDTO getOrderById(Long orderId);
+    OrderDTO getOrderById(Integer orderId);
 
-    List<OrderResponseDTO> getAllOrders();
+    List<OrderDTO> getAllOrders();
 
-    List<OrderResponseDTO> getOrdersByCustomer(Long customerId);
+    List<OrderDTO> getOrdersByCustomer(Integer customerId);
 }
